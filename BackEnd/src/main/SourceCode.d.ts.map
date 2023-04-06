@@ -1,0 +1,201 @@
+a"></b>').toggleClass('a', true);
+			strictEqual($elm.attr('class'), 'a');
+
+			$elm = $('<b class="a b"></b>').toggleClass('a', false);
+			strictEqual($elm.attr('class'), 'b');
+		});
+
+		test(prefix + 'toggleClass() on element', function() {
+			strictEqual($('<b class="a"></b>').hasClass('a'), true);
+			strictEqual($('<b class="a"></b>').hasClass('b'), false);
+			strictEqual($('<b class="a b"></b>').hasClass('b'), true);
+			strictEqual($('<b class="a b"></b>').hasClass('a'), true);
+		});
+
+		test(prefix + 'filter()', function() {
+			strictEqual($('<b></b><i></i><u></u>').filter('b,i').length, 2);
+			strictEqual($('<b></b><i></i><u></u>').filter(function(i, elm) {
+				return elm.tagName != 'U';
+			}).length, 2);
+			strictEqual($('<b></b><i></i><u></u>').filter(function(i) {
+				return i != 2;
+			}).length, 2);
+			strictEqual($([document, window, document.createTextNode('x')]).filter('*').length, 0);
+			strictEqual($.filter('*', [document, window, document.createTextNode('x')]).length, 0);
+		});
+
+		test(prefix + 'each() collection', function() {
+			var $html = $('<b>a</b><i>b</i>'), data;
+
+			data = '';
+			$html.each(function(index, elm) {
+				data += index + elm.innerHTML + this.innerHTML;
+			});
+			strictEqual(data, '0aa1bb');
+
+			data = '';
+			$html.each(function(index, elm) {
+				data += index + elm.innerHTML + this.innerHTML;
+
+				if (index === 0) {
+					return false;
+				}
+			});
+			strictEqual(data, '0aa');
+		});
+
+		test(prefix + 'on()/off()/trigger()', function() {
+			var lastArgs1, lastArgs2;
+
+			$elm = $('<b />');
+
+			// Single listener
+			$elm.on('click', function(e) {
+				lastArgs1 = e;
+			});
+			$elm.trigger('click');
+			strictEqual(lastArgs1.type, 'click');
+
+			// Single listener trigger object
+			$elm.off().on('click', function(e) {
+				lastArgs1 = e;
+			});
+			$elm.trigger({type: 'click', custom: 'x'});
+			strictEqual(lastArgs1.type, 'click');
+			strictEqual(lastArgs1.custom, 'x');
+
+			// Unbind listeners
+			lastArgs1 = null;
+			$elm.off('click');
+			$elm.trigger('click');
+			strictEqual(lastArgs1, null);
+
+			// Bind two listeners
+			$elm.on('click', function(e) {
+				lastArgs1 = e;
+			});
+			$elm.on('click', function(e) {
+				lastArgs2 = e;
+			});
+			$elm.trigger('click');
+			strictEqual(lastArgs1.type, 'click');
+			strictEqual(lastArgs2.type, 'click');
+
+			// Bind two listeners and stop propagation
+			lastArgs1 = lastArgs2 = null;
+			$elm.off('click');
+			$elm.on('click', function(e) {
+				lastArgs1 = e;
+				e.stopImmediatePropagation();
+			});
+			$elm.on('click', function(e) {
+				lastArgs2 = e;
+			});
+			$elm.trigger('click');
+			strictEqual(lastArgs1.type, 'click');
+			strictEqual(lastArgs2, null);
+		});
+
+		test(prefix + 'show()/hide() element', function() {
+			equal(normalizeStyleValue($('<b></b>').appendTo('#view').hide().attr('style')), 'display: none');
+			equal(normalizeStyleValue($('<b></b>').empty().appendTo('#view').show().attr('style')), undefined);
+		});
+
+		test(prefix + 'slice/eq/first/last() on collection', function() {
+			var $html = $('<b>1</b><i>2</i><em>3</em>');
+
+			strictEqual($html.slice(1).length, 2);
+			strictEqual($html.slice(1)[0].tagName, 'I');
+			strictEqual($html.slice(1)[1].tagName, 'EM');
+
+			strictEqual($html.slice(1, 2).length, 1);
+			strictEqual($html.slice(1, 2)[0].tagName, 'I');
+
+			strictEqual($html.slice(-2, -1).length, 1);
+			strictEqual($html.slice(-2, -1)[0].tagName, 'I');
+
+			strictEqual($html.eq(1).length, 1);
+			strictEqual($html.eq(1)[0].tagName, 'I');
+
+			strictEqual($html.eq(-1).length, 1);
+			strictEqual($html.eq(-1)[0].tagName, 'EM');
+
+			strictEqual($html.eq(1).length, 1);
+			strictEqual($html.eq(1)[0].tagName, 'I');
+
+			strictEqual($html.first().length, 1);
+			strictEqual($html.first()[0].tagName, 'B');
+
+			strictEqual($html.last().length, 1);
+			strictEqual($html.last()[0].tagName, 'EM');
+		});
+
+		test(prefix + 'replaceWith() on single element with single element', function() {
+			var $result;
+
+			$('<b>1</b>').appendTo('#view');
+			$result = $('#view b').replaceWith('<i>2</i>');
+			strictEqual($('#view').html().toLowerCase(), '<i>2</i>');
+			strictEqual($result.length, 1);
+			strictEqual($result[0].tagName, 'B');
+		});
+
+		test(prefix + 'replaceWith() on single element with multiple elements', function() {
+			var $result;
+
+			$('<b>1</b>').appendTo('#view');
+			$result = $('#view b').replaceWith('<i>2</i><i>3</i>');
+			strictEqual($('#view').html().toLowerCase(), '<i>2</i><i>3</i>');
+			strictEqual($result.length, 1);
+			strictEqual($result[0].tagName, 'B');
+		});
+/*
+		test(prefix + 'replaceWith() on multiple elements with multiple elements', function() {
+			var $result;
+
+			$('<b>1</b><i>2</i>').appendTo('#view');
+			$result = $('#view b, #view i').replaceWith('<i>3</i><i>4</i>');
+			strictEqual($('#view').html().toLowerCase(), '<i>3</i><i>4</i>');
+			strictEqual($result.length, 2);
+			strictEqual($result[0].tagName, 'B');
+			strictEqual($result[1].tagName, 'I');
+		});
+*/
+		test(prefix + 'wrap() single element', function() {
+			$('<b>1</b>').appendTo('#view').wrap('<i>');
+			strictEqual($('#view').html().toLowerCase(), '<i><b>1</b></i>');
+		});
+
+		test(prefix + 'wrap() multiple element', function() {
+			$('<b>1</b><b>2</b>').appendTo('#view').wrap('<i>');
+			strictEqual($('#view').html().toLowerCase(), '<i><b>1</b></i><i><b>2</b></i>');
+		});
+
+		test(prefix + 'wrapAll() multiple element', function() {
+			$('<b>1</b><b>2</b>').appendTo('#view').wrapAll('<i>');
+			strictEqual($('#view').html().toLowerCase(), '<i><b>1</b><b>2</b></i>');
+		});
+
+		test(prefix + 'wrapInner() multiple element', function() {
+			$('<b>1<i>a</i></b><b>2<i>b</i></b>').appendTo('#view').wrapInner('<i>');
+			strictEqual($('#view').html().toLowerCase(), '<b><i>1<i>a</i></i></b><b><i>2<i>b</i></i></b>');
+		});
+
+		test(prefix + 'unwrap() single element with no siblings', function() {
+			$('#view').html('<b><i>1</i></b>');
+			$('#view i').unwrap();
+			strictEqual($('#view').html().toLowerCase(), '<i>1</i>');
+		});
+
+		test(prefix + 'unwrap() single element with siblings', function() {
+			$('#view').html('<b><i>1</i><i>2</i></b>');
+			$('#view i').unwrap();
+			strictEqual($('#view').html().toLowerCase(), '<i>1</i><i>2</i>');
+		});
+
+		test(prefix + 'clone() single element', function() {
+			$('<b>1</b>').appendTo('#view').clone().appendTo('#view');
+			strictEqual($('#view').html().toLowerCase(), '<b>1</b><b>1</b>');
+		});
+
+		test(prefix + 'find()', 
